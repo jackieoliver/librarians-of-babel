@@ -14,6 +14,7 @@ import asyncio
 import base64
 import json
 import os
+import random
 import re
 import shutil
 import subprocess
@@ -84,7 +85,8 @@ async def ingest(gh: GitHub, days: int, min_stars: int, max_stars: int, cap: int
     repos: dict[str, dict] = {}
     today = datetime.now(timezone.utc).date()
     bands = star_bands(min_stars, max_stars)
-    per_query = max(100, min(1000, cap // (days * len(bands)) + 1))
+    # sparse high-star bands run dry early, so oversample every slice and draw a random `cap` at the end
+    per_query = max(100, min(1000, 2 * cap // (days * len(bands)) + 1))
     for d in range(1, days + 1):
         day = today - timedelta(days=d)
         for band in bands:
@@ -103,7 +105,8 @@ async def ingest(gh: GitHub, days: int, min_stars: int, max_stars: int, cap: int
                 if len(items) < 100 or got >= per_query:
                     break
             log(f"ingest {day} stars {band}: {got}  (total {len(repos)})")
-    return list(repos.values())[:cap]
+    pool = list(repos.values())
+    return pool if len(pool) <= cap else random.Random(0).sample(pool, cap)
 
 
 def slim(it: dict) -> dict:
