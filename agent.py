@@ -12,7 +12,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-MAX_TURNS = 14
+MAX_TURNS = 18  # run1: 2 of 30 ran out at 14
 MAX_READ = 12000
 
 SYSTEM = """You are a reviewer for "Librarians of Babel", an index of remarkable new open-source work found before it gets popular. You have a read-only checkout of one repository and tools to explore it. Your job is to find out what is really there, not what the README claims.
