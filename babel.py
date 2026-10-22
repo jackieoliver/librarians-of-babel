@@ -243,6 +243,7 @@ async def fetch_contexts(gh: GitHub, repos: list[dict], batch: int = 6) -> dict[
 
     async def one(chunk: list[dict]):
         q = "query {" + "\n".join(gql_part(i, r["full_name"]) for i, r in enumerate(chunk)) + "}"
+        data = None
         async with sem:
             for attempt in range(4):
                 try:
@@ -251,17 +252,23 @@ async def fetch_contexts(gh: GitHub, repos: list[dict], batch: int = 6) -> dict[
                     await asyncio.sleep(2 ** attempt)
                     continue
                 if resp.status_code == 200:
-                    break
+                    try:
+                        data = resp.json().get("data") or {}
+                        break
+                    except ValueError:  # GitHub sometimes answers 200 with an empty body under load
+                        await asyncio.sleep(2 ** attempt)
+                        continue
                 if resp.status_code in (502, 504) and len(chunk) > 1:
                     break
                 await asyncio.sleep(5 * (attempt + 1))
             else:
                 return
-        if resp.status_code != 200:
+        if data is None:
+            if len(chunk) == 1:
+                return
             half = len(chunk) // 2
             await asyncio.gather(one(chunk[:half]), one(chunk[half:]))
             return
-        data = (resp.json().get("data") or {})
         for i, r in enumerate(chunk):
             node = data.get(f"r{i}") or {}
             readme = next(((node.get(f"m{j}") or {}).get("text") or "" for j in range(len(README_NAMES)) if (node.get(f"m{j}") or {}).get("text")), "")
