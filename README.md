@@ -28,3 +28,6 @@ Needs `~/.config/secrets/openrouter_api_key` and a logged-in `gh`. Runs write to
 ## Run log
 
 - **2026-10-21, run1** (7 days, 2–60 stars): 2,100 candidates → 600 past triage → 596 screened → 30 deep dives (28 ok, 2 ran out of turns) → 6 gems, 19 worth a look. $0.54 total (screen ~$0.0003/repo, deep dive ~$0.017/repo). Gems: willwaltz/globes, zer0ducksgiven/Forza-Motorsport-2-ReGPU, mr-finster/vf3-recomp, Ambitosis/OpenWinter, alkove-ai/alkove, GreenSwampDweller/torchlight-rekindled. Bias seen: sorting by stars fills the top 30 with game recompilation and reverse-engineering projects; the judge also emitted two placeholder rows (dropped by the report).
+- **2026-10-21, run2-20k** (paused): 20,000 candidates over 14 days in 6 star bands → 15,159 past triage. Stopped by hand during the README/tree fetch (2,393 done; GitHub throttled GraphQL to ~480 repos per 3 min, so the full fetch needs ~1.5 h). `candidates.json` is saved, so resuming skips ingest:
+  `lx run --dir <this repo> babel-20k -- uv run -q babel.py --days 14 --max-candidates 20000 --deep 100 --budget 12 --resume run2-20k-2026-10-21`
+  Fetched contexts are not cached yet, so a resume refetches them; caching them per repo is the obvious next fix. Estimated model spend for the rest: ~$5.50 screening + ~$3 deep dives.
