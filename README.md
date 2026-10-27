@@ -10,6 +10,21 @@ Finds remarkable new GitHub repos before they have stars. A rebuild of the v1 pi
 
 ## Pipeline
 
+```mermaid
+flowchart LR
+    A["GitHub search (ingest)"] --> B{Triage patterns}
+    B -->|skip| X[Dropped]
+    B -->|keep| C[README + file tree]
+    C --> D[Screen model JSON scores]
+    D --> E[Top N by score]
+    E --> F[Shallow clone]
+    F --> G["Deep dive agent (list_dir, read_file, grep)"]
+    G --> H[Judge ranks finalists]
+    H --> I[report.html]
+```
+
+Each stage is cheaper than the next and passes on fewer repos, so only the top screened repos are ever cloned. Every stage writes a JSON file in the run folder, and `--resume` skips the ones already done.
+
 1. **Ingest**: GitHub search, repos created in the last N days with a few stars, not forks.
 2. **Triage** (free): hard-skip patterns, no description, tiny size.
 3. **Screen** (cheap model, ~$0.0002/repo): README + file tree summary, JSON scores.
